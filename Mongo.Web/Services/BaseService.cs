@@ -56,6 +56,15 @@ namespace Mongo.Web.Services
                 {
                     case System.Net.HttpStatusCode.OK:
                         var apiContent = await apiResponse.Content.ReadAsStringAsync();
+                        if(apiContent == null)
+                        {
+                            return new()
+                            {
+                                IsSuccess = false,
+                                Message = "Not Found!",
+                                Result = null
+                            };
+                        }
                         return JsonConvert.DeserializeObject<ResponseDto>(apiContent);
                     case System.Net.HttpStatusCode.Unauthorized:
                         return new()
@@ -78,6 +87,18 @@ namespace Mongo.Web.Services
                             Message = "Not Found!",
                             Result = null
                         };
+                    default:
+                        var apiContents = await apiResponse.Content.ReadAsStringAsync();
+                        if (apiContents == null)
+                        {
+                            return new()
+                            {
+                                IsSuccess = false,
+                                Message = "Not Found!",
+                                Result = null
+                            };
+                        }
+                        return JsonConvert.DeserializeObject<ResponseDto>(apiContents);
                 }
             }
             catch (Exception ex)
@@ -88,6 +109,7 @@ namespace Mongo.Web.Services
                     Message = ex.Message.ToString()
                 };
             }
+
         }
     }
 }
