@@ -87,6 +87,13 @@ namespace Mongo.Web.Services
                             Message = "Not Found!",
                             Result = null
                         };
+                    case System.Net.HttpStatusCode.MethodNotAllowed:
+                        return new()
+                        {
+                            IsSuccess = false,
+                            Message = "Not Allowed!",
+                            Result = null
+                        };
                     default:
                         var apiContents = await apiResponse.Content.ReadAsStringAsync();
                         if (apiContents == null)
