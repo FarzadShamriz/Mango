@@ -47,8 +47,12 @@ namespace Mongo.Web.Controllers
                 TempData["success"] = "Loged in successfully";
                 return RedirectToAction("Index", "Home");
             }
+            else
+            {
+                TempData["error"] = responseDto.Message;
+            }
+
             ModelState.AddModelError("CustomError", responseDto.Message);
-            TempData["error"] = "Error!!!";
             return View(model);
         }
 
@@ -96,6 +100,11 @@ namespace Mongo.Web.Controllers
                     return RedirectToAction(nameof(Login));
                 }
             }
+            else
+            {
+                TempData["error"] = result.Message;
+            }
+
 
             var roleList = new List<SelectListItem>()
             {
@@ -126,7 +135,7 @@ namespace Mongo.Web.Controllers
 
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email, 
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email,
                 jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
 
             identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub,
