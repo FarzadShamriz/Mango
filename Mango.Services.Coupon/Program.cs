@@ -5,6 +5,7 @@ using Mango.Services.Coupon.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,21 +32,20 @@ builder.Services.AddSwaggerGen(option =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    //TODO: Fix this part later
-    //option.AddSecurityRequirement(new OpenApiSecurityRequirement
-    //{
-    //    {
-    //        new OpenApiSecurityScheme
-    //        {
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
 
-    //            Reference= new OpenApiReference
-    //            {
-    //                Type=ReferenceType.SecurityScheme,
-    //                Id=JwtBearerDefaults.AuthenticationScheme
-    //            }
-    //        }, new string[]{}
-    //    }
-    //});
+                Reference= new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id=JwtBearerDefaults.AuthenticationScheme
+                }
+            }, new string[]{}
+        }
+    });
 });
 builder.AddAppAuthetication();
 
