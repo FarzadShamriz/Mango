@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using Mango.Services.Coupon.Models.DTOs;
+using Mango.Services.CouponAPI.Models.DTOs;
 
-namespace Mango.Services.Coupon
+namespace Mango.Services.CouponAPI
 {
     public class MappingProfile
     {

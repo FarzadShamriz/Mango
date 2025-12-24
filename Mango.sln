@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration", "Integration"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{88479865-F952-4116-96DB-41D4D515715F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mango.Services.Coupon", "Mango.Services.Coupon\Mango.Services.Coupon.csproj", "{E7C82247-3E89-44E3-9BB5-A9E801A606E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mango.Services.CouponAPI", "Mango.Services.Coupon\Mango.Services.CouponAPI.csproj", "{E7C82247-3E89-44E3-9BB5-A9E801A606E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mongo.Web", "Mongo.Web\Mongo.Web.csproj", "{7E940477-DC3A-45F5-9E2B-19D4EC599519}"
 EndProject

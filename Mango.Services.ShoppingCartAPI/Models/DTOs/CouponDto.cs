@@ -1,16 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Mango.Services.CouponAPI.Models
+﻿namespace Mango.Services.ShoppingCartAPI.Models.DTOs
 {
-    public class Coupon
+    public class CouponDto
     {
-        [Key]
         public int CouponId { get; set; }
-        [Required]
         public string CouponCode { get; set; }
-        [Required]
         public double DiscountAmount { get; set; }
         public int MinAmount { get; set; }
-
     }
 }

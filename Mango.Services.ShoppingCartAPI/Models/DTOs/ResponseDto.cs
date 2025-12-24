@@ -1,4 +1,4 @@
-﻿namespace Mango.Services.CouponAPI.Models.DTOs
+﻿namespace Mango.Services.ShoppingCartAPI.Models.DTOs
 {
     public class ResponseDto
     {
