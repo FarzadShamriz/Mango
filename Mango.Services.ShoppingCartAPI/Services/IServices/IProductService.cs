@@ -5,7 +5,7 @@ namespace Mango.Services.ShoppingCartAPI.IServices
 {
     public interface IProductService
     {
-        Task<IEnumerable<ProductDto?>> GetProductsAsync(int id);
+        Task<IEnumerable<ProductDto?>> GetProductsAsync();
 
     }
 }
