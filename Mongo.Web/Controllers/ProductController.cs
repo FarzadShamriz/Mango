@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Mongo.Web.Models;
-using Mongo.Web.Services;
-using Mongo.Web.Services.IServices;
+using Mango.Web.Models;
+using Mango.Web.Services;
+using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Mongo.Web.Controllers
+namespace Mango.Web.Controllers
 {
     public class ProductController : Controller
     {

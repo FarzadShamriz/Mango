@@ -1,8 +1,8 @@
-﻿using Mongo.Web.Models;
-using Mongo.Web.Services.IServices;
-using Mongo.Web.Utilities;
+﻿using Mango.Web.Models;
+using Mango.Web.Services.IServices;
+using Mango.Web.Utilities;
 
-namespace Mongo.Web.Services
+namespace Mango.Web.Services
 {
     public class AuthService : IAuthService
     {

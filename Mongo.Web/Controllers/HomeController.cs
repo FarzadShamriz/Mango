@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Mongo.Web.Models;
-using Mongo.Web.Services.IServices;
+using Mango.Web.Models;
+using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Diagnostics;
 
-namespace Mongo.Web.Controllers
+namespace Mango.Web.Controllers
 {
     public class HomeController : Controller
     {

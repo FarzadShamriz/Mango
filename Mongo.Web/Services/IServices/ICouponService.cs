@@ -1,7 +1,7 @@
 ﻿using Mango.Web.Models;
-using Mongo.Web.Models;
+using Mango.Web.Models;
 
-namespace Mongo.Web.Services.IServices
+namespace Mango.Web.Services.IServices
 {
     public interface ICouponService
     {

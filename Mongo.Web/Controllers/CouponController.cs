@@ -1,11 +1,11 @@
 ﻿using Mango.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using Mongo.Web.Models;
-using Mongo.Web.Services.IServices;
+using Mango.Web.Models;
+using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Mongo.Web.Controllers
+namespace Mango.Web.Controllers
 {
     public class CouponController : Controller
     {

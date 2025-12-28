@@ -1,11 +1,11 @@
-﻿using Mongo.Web.Models;
-using Mongo.Web.Services.IServices;
+﻿using Mango.Web.Models;
+using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Mongo.Web.Services
+namespace Mango.Web.Services
 {
     public class BaseService : IBaseService
     {

@@ -3,6 +3,7 @@ using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Models;
 using Mango.Services.ShoppingCartAPI.Models.DTOs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.PortableExecutable;
@@ -22,6 +23,37 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             _mapper = mapper;
             _response = new ResponseDto();
             _context = context;
+        }
+
+        [HttpPost("RemoveCart")]
+        public async Task<ResponseDto> RemoveCart([FromBody] int cartDetailsId)
+        {
+            ResponseDto result = new();
+
+            try
+            {
+                var cartDetails = await _context.CartDetails.FirstOrDefaultAsync(u => u.CartDetailsId == cartDetailsId);
+                var totalCountOfCartItem = _context.CartDetails.Where(u => u.CartHeaderId == cartDetails.CartHeaderId).Count();
+
+                _context.CartDetails.Remove(cartDetails);
+
+                if (totalCountOfCartItem == 1)
+                {
+                    var cartHeaderToRemove = await _context.CartHeaders.FirstOrDefaultAsync(u => u.CartHeaderId == cartDetails.CartHeaderId);
+                    _context.CartHeaders.Remove(cartHeaderToRemove);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _response.Result = true;
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message.ToString();
+            }
+
+            return result;
         }
 
         [HttpPost("CartUpsert")]
@@ -80,6 +112,43 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             }
 
             return result;
+        }
+
+        [HttpGet("GetCart/{userId}")]
+        public async Task<ResponseDto> GetCartByUserID(string userId)
+        {
+
+            ResponseDto response = new();
+            
+            try
+            {
+                var userCartHeader = _context.CartHeaders.AsNoTracking().FirstOrDefault(ch => ch.UserId == userId);
+
+                if(userCartHeader != null)
+                {
+                    CartDto cart = new CartDto() { CartHeader = _mapper.Map<CartHeaderDto>(userCartHeader)};
+                    var cartDetails = _context.CartDetails.AsNoTracking().Where(cd => cd.CartHeaderId == userCartHeader.CartHeaderId).ToList();
+                    cart.CartDetails = _mapper.Map<List<CartDetailsDto>>(cartDetails);
+                    cart.CartHeader.CartTotal = cartDetails.Sum(cd => (cd.Count * cd.Product.Price));
+
+                    response.Result = cart;
+                    response.IsSuccess = true;
+                    response.Message = "Success";
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Cart Header Not Found!";
+                }
+            }
+            catch(Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
+
         }
 
     }
