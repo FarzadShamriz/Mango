@@ -138,6 +138,8 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
 
                     foreach (var detail in cart.CartDetails)
                     {
+                        detail.Product = products.FirstOrDefault(p => p.ProductId == detail.ProductId);
+                        detail.ProductId = detail.Product.ProductId;
                         cart.CartHeader.CartTotal = cart.CartHeader.CartTotal ?? 0;
                         cart.CartHeader.CartTotal += (detail.Count * products.FirstOrDefault(p => p.ProductId == detail.ProductId).Price);
                     }

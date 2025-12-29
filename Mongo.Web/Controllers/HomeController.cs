@@ -4,6 +4,7 @@ using Mango.Web.Models;
 using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Mango.Web.Controllers
 {
@@ -11,11 +12,13 @@ namespace Mango.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productService;
+        private readonly ICartService _cartService;
 
-        public HomeController(ILogger<HomeController> logger, IProductService productService)
+        public HomeController(ILogger<HomeController> logger, IProductService productService, ICartService cartService)
         {
             _logger = logger;
             _productService = productService;
+            _cartService = cartService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +47,43 @@ namespace Mango.Web.Controllers
             {
                 var model = JsonConvert.DeserializeObject<ProductDto>(responseModel.Result.ToString());
                 return View(model);
+            }
+
+            TempData["error"] = "Product Not Found!!!";
+            return RedirectToAction(nameof(Index));
+
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ActionName("ProductDetails")]
+        public async Task<IActionResult> ProductDetails(ProductDto productDto)
+        {
+            CartDto cartDto = new()
+            {
+                CartHeader = new CartHeaderDto
+                {
+                    UserId = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Sub)?.FirstOrDefault()?.Value
+                }
+            };
+
+            CartDetailsDto cartDetails = new()
+            {
+                Count = productDto.Count,
+                ProductId = productDto.ProductId
+            };
+
+            List<CartDetailsDto> cartDetailsDtos = new() { cartDetails };
+
+            cartDto.CartDetails = cartDetailsDtos;
+
+            var addToCartResponse = await _cartService.UpsertCartAsync(cartDto);
+            if (addToCartResponse != null && addToCartResponse.IsSuccess)
+            {
+                //var model = JsonConvert.DeserializeObject<CartDto>(addToCartResponse.Result.ToString());
+                //return View(model);
+                TempData["success"] = "Success";
+                return RedirectToAction(nameof(Index));
             }
 
             TempData["error"] = "Product Not Found!!!";
