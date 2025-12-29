@@ -5,6 +5,7 @@ using Mango.Services.ShoppingCartAPI.Extensions;
 using Mango.Services.ShoppingCartAPI.IServices;
 using Mango.Services.ShoppingCartAPI.Services;
 using Mango.Services.ShoppingCartAPI.Services.IServices;
+using Mango.Services.ShoppingCartAPI.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -12,20 +13,22 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 builder.Services.AddDbContext<AppDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
 IMapper mapper = MappingProfile.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-builder.Services.AddHttpClient("Product", u=>u.BaseAddress = new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
-builder.Services.AddHttpClient("Coupon", u=>u.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<BackendAPIAuthenticationHttpClientHandler>();
 builder.Services.AddScoped<ICouponService, CouponService>();
-
+builder.Services.AddHttpClient("Product", u => u.BaseAddress =
+new Uri(builder.Configuration["ServiceUrls:ProductAPI"])).AddHttpMessageHandler<BackendAPIAuthenticationHttpClientHandler>();
+builder.Services.AddHttpClient("Coupon", u => u.BaseAddress =
+new Uri(builder.Configuration["ServiceUrls:CouponAPI"])).AddHttpMessageHandler<BackendAPIAuthenticationHttpClientHandler>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -44,7 +47,6 @@ builder.Services.AddSwaggerGen(option =>
         {
             new OpenApiSecurityScheme
             {
-
                 Reference= new OpenApiReference
                 {
                     Type=ReferenceType.SecurityScheme,
@@ -56,26 +58,27 @@ builder.Services.AddSwaggerGen(option =>
 });
 builder.AddAppAuthetication();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    if (!app.Environment.IsDevelopment())
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cart API");
+        c.RoutePrefix = string.Empty;
+    }
+});
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 ApplyMigration();
-
 app.Run();
 
 
@@ -84,6 +87,7 @@ void ApplyMigration()
     using (var scope = app.Services.CreateScope())
     {
         var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         if (_db.Database.GetPendingMigrations().Count() > 0)
         {
             _db.Database.Migrate();
