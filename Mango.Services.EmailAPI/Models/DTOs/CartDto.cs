@@ -1,0 +1,8 @@
+﻿namespace Mango.Services.EmailAPI.Models.DTOs
+{
+    public class CartDto
+    {
+        public CartHeaderDto CartHeader { get; set; } = new CartHeaderDto();
+        public IEnumerable<CartDetailsDto> CartDetails { get; set; } = new List<CartDetailsDto>();
+    }
+}
