@@ -1,7 +1,7 @@
 ﻿@model CartDto
 
 
-<form method="post">
+<form method="post" asp-action="EmailCart">
     <input hidden asp-for="CartHeader.UserId" />
     <input hidden asp-for="CartHeader.CartHeaderId" />
     <br />

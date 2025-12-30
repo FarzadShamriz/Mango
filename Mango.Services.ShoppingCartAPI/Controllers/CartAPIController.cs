@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.MessageBus;
 using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.IServices;
 using Mango.Services.ShoppingCartAPI.Models;
@@ -21,13 +22,21 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         private readonly AppDbContext _context;
         private readonly IProductService _productService;
         private readonly ICouponService _couponService;
-        public CartAPIController(IMapper mapper, AppDbContext context, IProductService productService, ICouponService couponService)
+        private readonly IMessageBus _messageBus;
+        private readonly IConfiguration _configuration;
+        private readonly string _queueName;
+
+        public CartAPIController(IMapper mapper, AppDbContext context, IProductService productService, 
+            ICouponService couponService, IMessageBus messageBus, IConfiguration configuration)
         {
             _mapper = mapper;
             _response = new ResponseDto();
             _context = context;
             _productService = productService;
             _couponService = couponService;
+            _messageBus = messageBus;
+            _configuration = configuration;
+            _queueName = configuration.GetSection("TopicAndQueueNames").GetValue<string>("EmailShoppingCart");
         }
 
         [HttpPost("RemoveCart")]
@@ -183,6 +192,23 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
                 _context.CartHeaders.Update(cartFromDb);
                 await _context.SaveChangesAsync();
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message.ToString();
+            }
+
+            return _response;
+        }
+
+        [HttpPost("EmailCartRequest")]
+        public async Task<Object> EmailCartRequest([FromBody] CartDto cartDto)
+        {
+            try
+            {
+                await _messageBus.PublishMessage(cartDto, _queueName);
                 _response.IsSuccess = true;
             }
             catch (Exception ex)
