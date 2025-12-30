@@ -36,7 +36,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             _couponService = couponService;
             _messageBus = messageBus;
             _configuration = configuration;
-            _queueName = configuration.GetSection("TopicAndQueueNames").GetValue<string>("EmailShoppingCart");
+            _queueName = configuration.GetSection("TopicAndQueueNames").GetValue<string>("EmailShoppingCartQueue");
         }
 
         [HttpPost("RemoveCart")]
