@@ -13,7 +13,7 @@ namespace Mango.Services.EmailAPI.Data
 
         }
 
-        public DbSet<EmailLogger> emailLoggers { get; set; }
+        public DbSet<EmailLogger> EmailLoggers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
