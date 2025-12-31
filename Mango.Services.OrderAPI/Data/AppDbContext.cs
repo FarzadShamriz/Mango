@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mango.Services.OrderAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 
 namespace Mango.Services.OrderAPI.Data
@@ -11,7 +12,8 @@ namespace Mango.Services.OrderAPI.Data
 
         }
 
-
+        public DbSet<OrderHeader> OrderHeaders { get; set; }
+        public DbSet<OrderDetails> OrderDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
