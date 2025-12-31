@@ -1,29 +1,35 @@
 ﻿@model CartDto
 
 <form method="post">
+    <input hidden asp-for="CartHeader.UserId" />
+    <input hidden asp-for="CartHeader.CartHeaderId" />
+    <input hidden asp-for="CartHeader.CouponCode" />
+    <input hidden asp-for="CartHeader.Dicsount" />
+    <input hidden asp-for="CartHeader.CartTotal" />
+
     <div class="border mt-2 p-4 rounded">
         <div class="container row">
             <div class="col-md-7 col-12">
                 <span style="font-size:25px;" class="text-warning mb-2">Order Summary</span>
             </div>
             <div class="col-md-5 col-12">
-                <a class="btn btn-outline-warning form-control">Back to Cart</a>
+                <a asp-action="CartIndex" class="btn btn-outline-warning form-control">Back to Cart</a>
             </div>
             <br /><br /><br />
             <hr />
             <div class="col-7">
                 <div class="row pt-2">
                     <div class="col-12 py-2">
-                        <input asp-for="CartHeader.FirstName" placeholder="first name..." class="form-control" />
-                    </div>
-                    <div class="col-12 py-2">
-                        <input asp-for="CartHeader.LastName" placeholder =" last name..." class="form-control" />
+                        <input asp-for="CartHeader.Name" placeholder=" name..." class="form-control" />
+                        <span asp-validation-for="CartHeader.Name" class="text-danger"></span>
                     </div>
                     <div class="col-12 py-2">
                         <input asp-for="CartHeader.Email" placeholder =" email..." class="form-control" />
+                        <span asp-validation-for="CartHeader.Email" class="text-danger"></span>
                     </div>
                     <div class="col-12 py-2">
-                        <input asp-for="CartHeader.Phone" class="form-control" placeholder="phone number..." />
+                        <input asp-for="CartHeader.Phone" class="form-control" placeholder=" phone number..." />
+                        <span asp-validation-for="CartHeader.Phone" class="text-danger"></span>
                     </div>
                     <div class="col-12 pt-2">
                         <label class="col-form-label">Order will be ready in 30minutes after placing order. If you place order when restaurant is closed it will be ready next day.</label>

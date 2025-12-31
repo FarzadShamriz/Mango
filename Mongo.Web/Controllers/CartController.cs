@@ -58,9 +58,6 @@ namespace Mango.Web.Controllers
         public async Task<IActionResult> EmailCart(CartDto cartDto)
         {
             cartDto.CartHeader.Email = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Email)?.FirstOrDefault()?.Value;
-            cartDto.CartHeader.Phone = User.Claims.Where(u => u.Type == "PhoneNumber")?.FirstOrDefault()?.Value;
-            cartDto.CartHeader.FirstName = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Name)?.FirstOrDefault()?.Value;
-            cartDto.CartHeader.LastName = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.FamilyName)?.FirstOrDefault()?.Value;
             
             ResponseDto response = await _cartService.EmailCart(cartDto);
 
