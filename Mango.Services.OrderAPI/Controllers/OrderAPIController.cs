@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.MessageBus;
 using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.IServices;
 using Mango.Services.OrderAPI.Models;
@@ -20,13 +21,19 @@ namespace Mango.Services.OrderAPI.Controllers
         private IMapper _mapper;
         private readonly AppDbContext _db;
         private IProductService _productService;
+        private readonly IMessageBus _messageBus;
+        private readonly IConfiguration _configuration;
 
-        public OrderAPIController(AppDbContext db, IMapper mapper, IProductService productService)
+        public OrderAPIController(AppDbContext db,
+            IProductService productService, IMapper mapper, IConfiguration configuration
+            , IMessageBus messageBus)
         {
             _db = db;
-            _mapper = mapper;
-            _productService = productService;
+            _messageBus = messageBus;
             this._response = new ResponseDto();
+            _productService = productService;
+            _mapper = mapper;
+            _configuration = configuration;
         }
 
         [Authorize]
@@ -70,7 +77,7 @@ namespace Mango.Services.OrderAPI.Controllers
                     Discounts = new List<SessionDiscountOptions>()
                 };
 
-                if(stripeRequest.orderHeader.Dicsount != null && stripeRequest.orderHeader.Dicsount > 0)
+                if (stripeRequest.orderHeader.Dicsount != null && stripeRequest.orderHeader.Dicsount > 0)
                 {
                     options.Discounts.Add(new SessionDiscountOptions
                     {
@@ -78,7 +85,7 @@ namespace Mango.Services.OrderAPI.Controllers
                     });
                 }
 
-                foreach(var item in stripeRequest.orderHeader.OrderDetails)
+                foreach (var item in stripeRequest.orderHeader.OrderDetails)
                 {
                     var sessionLineItem = new SessionLineItemOptions
                     {
@@ -110,6 +117,70 @@ namespace Mango.Services.OrderAPI.Controllers
                 _response.Message = ex.Message;
             }
 
+            return _response;
+        }
+
+        [Authorize]
+        [HttpPost("ValidateStripeSession")]
+        public async Task<ResponseDto> ValidateStripeSession([FromBody] StripeRequestDto stripeRequest)
+        {
+            try
+            {
+                OrderHeader orderHeader = _db.OrderHeaders.First(o => o.OrderHeaderId == stripeRequest.orderHeader.OrderHeaderId);
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.StripeSessionId);
+
+                var paymentIntentService = new PaymentIntentService();
+                PaymentIntent paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
+
+                if (paymentIntent.Status == "succeeded")
+                {
+                    //then payment was successful
+                    orderHeader.PaymentIntentId = paymentIntent.Id;
+                    orderHeader.Status = SD.Status_Approved;
+                    _db.SaveChanges();
+
+                    _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+
+            return _response;
+        }
+
+        [Authorize]
+        [HttpPost("UpdateOrderStatus/{orderId:int}")]
+        public async Task<ResponseDto> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
+        {
+            try
+            {
+                OrderHeader orderHeader = _db.OrderHeaders.First(u => u.OrderHeaderId == orderId);
+                if (orderHeader != null)
+                {
+                    if (newStatus == SD.Status_Cancelled)
+                    {
+                        //we will give refund
+                        var options = new RefundCreateOptions
+                        {
+                            Reason = RefundReasons.RequestedByCustomer,
+                            PaymentIntent = orderHeader.PaymentIntentId
+                        };
+
+                        var service = new RefundService();
+                        Refund refund = service.Create(options);
+                    }
+                    orderHeader.Status = newStatus;
+                    _db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+            }
             return _response;
         }
 
