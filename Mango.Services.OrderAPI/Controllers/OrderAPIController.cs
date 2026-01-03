@@ -139,6 +139,14 @@ namespace Mango.Services.OrderAPI.Controllers
                     orderHeader.PaymentIntentId = paymentIntent.Id;
                     orderHeader.Status = SD.Status_Approved;
                     _db.SaveChanges();
+                    RewardDto rewardDto = new RewardDto
+                    {
+                        UserId = orderHeader.UserId,
+                        RewardsActity = Convert.ToInt32(orderHeader.OrderTotal), //1 point for every $1 spent
+                        OrderId = orderHeader.OrderHeaderId
+                    };
+                    string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreate");
+                    _messageBus.PublishMessage(rewardDto, topicName);
 
                     _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
                 }
