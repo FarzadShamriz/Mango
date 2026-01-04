@@ -8,6 +8,7 @@ using Mango.Services.OrderAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 
@@ -191,6 +192,60 @@ namespace Mango.Services.OrderAPI.Controllers
             }
             return _response;
         }
+
+        [Authorize]
+        [HttpGet("GetOrders")]
+        public async Task<ResponseDto> Get(string? userId = "")
+        {
+            try
+            {
+                IEnumerable<OrderHeader> orderHeaders;
+                if (User.IsInRole(SD.RoleAdmin))
+                {
+                    orderHeaders = _db.OrderHeaders.
+                        Include(o=>o.OrderDetails).
+                        ThenInclude(d=>d.Product).
+                        OrderByDescending(o=>o.OrderHeaderId).ToList();
+                }
+                else
+                {
+                    orderHeaders = _db.OrderHeaders.Where(o => o.UserId == userId).
+                        Include(o=>o.OrderDetails).
+                        ThenInclude(d=>d.Product).
+                        OrderByDescending(o=>o.OrderHeaderId).ToList();
+                }
+                IEnumerable<OrderHeaderDto> orderHeaderDtos = _mapper.Map<IEnumerable<OrderHeaderDto>>(orderHeaders);
+                _response.Result = orderHeaderDtos;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+            return _response;
+
+        }
+
+        [Authorize]
+        [HttpGet("GetOrder/{orderId:int}")]
+        public async Task<ResponseDto> Get(int orderId)
+        {
+            try
+            {
+                OrderHeader orderHeader = _db.OrderHeaders.Include(o=>o.OrderDetails).ThenInclude(d=>d.Product).First(o => o.OrderHeaderId == orderId);
+                OrderHeaderDto orderHeaderDto = _mapper.Map<OrderHeaderDto>(orderHeader);
+                _response.Result = orderHeaderDto;
+                _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+            return _response;
+
+        }
+
 
     }
 }
