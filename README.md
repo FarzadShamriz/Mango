@@ -448,7 +448,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Farzad Shamriz**
 
 - GitHub: [@FarzadShamriz](https://github.com/FarzadShamriz)
-- LinkedIn: [Farzad Shamriz](https://linkedin.com/in/farzad-shamriz)
+- LinkedIn: [Farzad Shamriz](https://linkedin.com/in/farzad-shamriz-8460a2a9)
 
 ---
 
