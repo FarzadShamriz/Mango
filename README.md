@@ -445,10 +445,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👤 Author
 
-**Your Name**
+**Farzad Shamriz**
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- GitHub: [@FarzadShamriz](https://github.com/FarzadShamriz)
+- LinkedIn: [Farzad Shamriz](https://linkedin.com/in/farzad-shamriz)
 
 ---
 
