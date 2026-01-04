@@ -2,12 +2,24 @@
 var datatable;
 
 $(document).ready(function () {
-    loadDatatable();
+    var url = window.location.search;
+    if (url.includes("approved")) {
+        loadDatatable("approved");
+    }
+    else if (url.includes("readyforpickup")) {
+        loadDatatable("readyforpickup");
+    }
+    else if (url.includes("cancelled")) {
+        loadDatatable("cancelled");
+    }
+    else {
+        loadDatatable("all");
+    }
 });
-function loadDatatable() {
+function loadDatatable(status) {
     datatable = $("#tblData").DataTable({
         "ajax": {
-            "url": "/order/getall"
+            "url": `/order/getall?status=${status}`
         },
         columns: [
 
