@@ -1,4 +1,4 @@
-﻿using Mango.Services.EmailAPI.Messaging;
+﻿using Mango.Services.RewardAPI.Messaging;
 using System.Runtime.CompilerServices;
 
 namespace Mango.Services.RewardAPI.Extension
