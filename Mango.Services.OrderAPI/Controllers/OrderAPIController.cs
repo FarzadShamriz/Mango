@@ -123,11 +123,11 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize]
         [HttpPost("ValidateStripeSession")]
-        public async Task<ResponseDto> ValidateStripeSession([FromBody] StripeRequestDto stripeRequest)
+        public async Task<ResponseDto> ValidateStripeSession([FromBody] int orderHeaderId)
         {
             try
             {
-                OrderHeader orderHeader = _db.OrderHeaders.First(o => o.OrderHeaderId == stripeRequest.orderHeader.OrderHeaderId);
+                OrderHeader orderHeader = _db.OrderHeaders.First(o => o.OrderHeaderId == orderHeaderId);
                 var service = new SessionService();
                 Session session = service.Get(orderHeader.StripeSessionId);
 
