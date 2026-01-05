@@ -58,11 +58,38 @@ namespace Mango.Services.ProductAPI.Controllers
 
         [HttpPut]
         [Authorize(Roles = "ADMIN")]
-        public ResponseDto Put([FromBody] ProductDto productDto)
+        public ResponseDto Put(ProductDto productDto)
         {
             try
             {
                 Product product = _mapper.Map<Product>(productDto);
+
+                if (productDto.Image != null)
+                {
+                    //First delete the old Image 
+                    if (!string.IsNullOrEmpty(product.ImageLocalPathUrl))
+                    {
+                        var productImagePathToDelete = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPathUrl);
+                        FileInfo fileInfoToDelete = new FileInfo(productImagePathToDelete);
+                        if (fileInfoToDelete.Exists)
+                        {
+                            fileInfoToDelete.Delete();
+                        }
+                    }
+
+                    string fileName = $"{product.ProductId}{Path.GetExtension(productDto.Image.FileName)}";
+                    string filePath = @"wwwroot\ProductImages\" + fileName;
+                    var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\ProductImages\");
+                    using (var fileStream = new FileStream(Path.Combine(filePathDirectory, fileName), FileMode.Create))
+                    {
+                        productDto.Image.CopyTo(fileStream);
+                    }
+
+                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                    product.ImageUrl = $"{baseUrl}/ProductImages/{fileName}";
+                    product.ImageLocalPathUrl = filePath;
+                }
+
                 _context.Products.Update(product);
                 _context.SaveChanges();
                 _response.Result = _mapper.Map<ProductDto>(product);
