@@ -125,6 +125,16 @@ namespace Mango.Services.ProductAPI.Controllers
             try
             {
                 Product product = _context.Products.First(p => p.ProductId == id);
+                if (!string.IsNullOrEmpty(product.ImageLocalPathUrl))
+                {
+                    var productImagePath = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPathUrl);
+                    FileInfo fileInfo = new FileInfo(productImagePath);
+                    if (fileInfo.Exists)
+                    {
+                        fileInfo.Delete();
+                    }
+                }
+
                 _context.Products.Remove(product);
                 _context.SaveChanges();
             }
