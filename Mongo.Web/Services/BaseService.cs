@@ -1,9 +1,11 @@
 ﻿using Mango.Web.Models;
 using Mango.Web.Services.IServices;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static Mango.Web.Utilities.SD;
 
 namespace Mango.Web.Services
 {
@@ -24,18 +26,51 @@ namespace Mango.Web.Services
             {
                 HttpClient client = _httpClientFactory.CreateClient("MangoAPI");
                 HttpRequestMessage message = new();
-                message.Headers.Add("Accept", "application/json");
+                if (requestDto.ContentType == ContentType.MultipartFormData)
+                {
+                    message.Headers.Add("Accept", "*/*");
+                }
+                else
+                {
+                    message.Headers.Add("Accept", "application/json");
+                }
+
                 //Token
                 if (withBearer)
                 {
                     var token = _tokenProvider.GetToken();
-                    message.Headers.Add("Authorization",$"Bearer {token}");
+                    message.Headers.Add("Authorization", $"Bearer {token}");
                 }
 
                 message.RequestUri = new Uri(requestDto.Url);
-                if (requestDto.Data != null)
+
+                if (requestDto.ContentType == ContentType.MultipartFormData)
                 {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
+                    var content = new MultipartFormDataContent();
+                    foreach (var prop in requestDto.Data.GetType().GetProperties())
+                    {
+                        var propValue = prop.GetValue(requestDto.Data);
+                        if (propValue != null && propValue is FormFile)
+                        {
+                            var file = (FormFile)propValue;
+                            if (file != null)
+                            {
+                                content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                            }
+                        }
+                        else
+                        {
+                            content.Add(new StringContent(propValue == null ? "" : propValue.ToString()), prop.Name);
+                        }
+                    }
+                    message.Content = content;
+                }
+                else
+                {
+                    if (requestDto.Data != null)
+                    {
+                        message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
+                    }
                 }
 
                 HttpResponseMessage? apiResponse = null;
@@ -64,7 +99,7 @@ namespace Mango.Web.Services
                 {
                     case System.Net.HttpStatusCode.OK:
                         var apiContent = await apiResponse.Content.ReadAsStringAsync();
-                        if(apiContent == null)
+                        if (apiContent == null)
                         {
                             return new()
                             {

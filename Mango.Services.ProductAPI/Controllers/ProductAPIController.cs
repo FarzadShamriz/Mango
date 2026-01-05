@@ -77,13 +77,36 @@ namespace Mango.Services.ProductAPI.Controllers
 
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
-        public ResponseDto Post([FromBody] ProductDto productDto)
+        public ResponseDto Post(ProductDto productDto)
         {
             try
             {
                 Product product = _mapper.Map<Product>(productDto);
                 _context.Products.Add(product);
                 _context.SaveChanges();
+
+                if (productDto.Image != null)
+                {
+                    string fileName = $"{product.ProductId}{Path.GetExtension(productDto.Image.FileName)}";
+                    string filePath = @"wwwroot\ProductImages\" + fileName;
+                    var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\ProductImages\");
+                    using (var fileStream = new FileStream(Path.Combine(filePathDirectory, fileName), FileMode.Create))
+                    {
+                        productDto.Image.CopyTo(fileStream);
+                    }
+
+                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                    product.ImageUrl = $"{baseUrl}/ProductImages/{fileName}";
+                    product.ImageLocalPathUrl = filePath;
+                }
+                else
+                {
+                    product.ImageUrl = "http://placehold.co/600x400";
+                }
+
+                _context.Products.Update(product);
+                _context.SaveChanges();
+
                 _response.Result = _mapper.Map<ProductDto>(product);
             }
             catch (Exception ex)
