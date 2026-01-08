@@ -56,7 +56,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Coupon API");
+        c.RoutePrefix = string.Empty;
+    });
 }
 
 StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("Stripe:SecretKey");
