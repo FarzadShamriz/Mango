@@ -31,11 +31,11 @@ namespace Mango.Services.AuthAPI.RabbitMQSender
             _connection = factory.CreateConnection();
 
             using var channel = _connection.CreateModel();
-            channel.QueueDeclare(queue: queueName);
+            channel.QueueDeclare(queue: queueName, false, false, false, null);
             var jsonBody = JsonConvert.SerializeObject(message);
             var body = System.Text.Encoding.UTF8.GetBytes(jsonBody);
 
-            channel.BasicPublish(exchange: "", routingKey: queueName, body: body);
+            channel.BasicPublish(exchange: "", routingKey: queueName, null, body: body);
 
         }
     }
