@@ -1,5 +1,6 @@
 ﻿using Mango.MessageBus;
 using Mango.Services.AuthAPI.Models.DTOs;
+using Mango.Services.AuthAPI.RabbitMQSender;
 using Mango.Services.AuthAPI.Services.Iservice;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.Http;
@@ -13,15 +14,15 @@ namespace Mango.Services.AuthAPI.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ResponseDto _responseDto;
-        private readonly IMessageBus _messageBus;
+        private readonly IRabbitMQAuthMessageSender _rabbitMQAuthMessageSender;
         private readonly IConfiguration _configuration;
         private readonly string _queueName;
 
-        public AuthAPIController(IAuthService authService, IMessageBus messageBus, IConfiguration configuration)
+        public AuthAPIController(IAuthService authService, IRabbitMQAuthMessageSender rabbitMQAuthMessageSender, IConfiguration configuration)
         {
             _authService = authService;
             _responseDto = new();
-            _messageBus = messageBus;
+            _rabbitMQAuthMessageSender = rabbitMQAuthMessageSender;
             _configuration = configuration;
             _queueName = _configuration["UserRegisterQueue"];
         }
@@ -37,7 +38,7 @@ namespace Mango.Services.AuthAPI.Controllers
                 return BadRequest(_responseDto);
             }
 
-            await _messageBus.PublishMessage(model.Email, _queueName);
+            _rabbitMQAuthMessageSender.SendMessage(model.Email, _queueName);
 
             return Ok(_responseDto);
         }
