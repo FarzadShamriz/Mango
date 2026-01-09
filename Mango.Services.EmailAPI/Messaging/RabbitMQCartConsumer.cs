@@ -1,4 +1,5 @@
-﻿using Mango.Services.EmailAPI.Services;
+﻿using Mango.Services.EmailAPI.Models.DTOs;
+using Mango.Services.EmailAPI.Services;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -7,7 +8,7 @@ using System.Threading.Channels;
 
 namespace Mango.Services.EmailAPI.Messaging
 {
-    public class RabbitMQAuthConsumer : BackgroundService
+    public class RabbitMQCartConsumer : BackgroundService
     {
 
         private readonly EmailService _emailService;
@@ -16,12 +17,12 @@ namespace Mango.Services.EmailAPI.Messaging
         private IModel _channel;
         private readonly string _queueName;
 
-        public RabbitMQAuthConsumer(IConfiguration configuration, EmailService emailService)
+        public RabbitMQCartConsumer(IConfiguration configuration, EmailService emailService)
         {
             
             _configuration = configuration;
             _emailService = emailService;
-            _queueName = configuration.GetValue<string>("TopicAndQueueNames:registeruser");
+            _queueName = configuration.GetValue<string>("TopicAndQueueNames:emailshoppingcarttopic");
             var factory = new ConnectionFactory()
             {
                 HostName = "localhost",
@@ -45,8 +46,8 @@ namespace Mango.Services.EmailAPI.Messaging
             consumer.Received += (ch, ea) =>
             {
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
-                string email = JsonConvert.DeserializeObject<String>(content);
-                HandleMessage(email).GetAwaiter().GetResult();
+                CartDto cartDto = JsonConvert.DeserializeObject<CartDto>(content);
+                HandleMessage(cartDto).GetAwaiter().GetResult();
 
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
@@ -56,9 +57,9 @@ namespace Mango.Services.EmailAPI.Messaging
             return Task.CompletedTask;
         }
 
-        private async Task HandleMessage(string email)
+        private async Task HandleMessage(CartDto cartDto)
         {
-            _emailService.RegisterUserEmailAndLog(email).GetAwaiter().GetResult();
+            _emailService.EmailCartAndLog(cartDto).GetAwaiter().GetResult();
         }
 
     }
