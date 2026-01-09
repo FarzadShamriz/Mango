@@ -21,22 +21,45 @@ namespace Mango.Services.AuthAPI.RabbitMQSender
         }
         public void SendMessage(object message, string queueName)
         {
-            var factory = new ConnectionFactory()
+            if (ConnectionExists())
             {
-                HostName = _hostName,
-                UserName = _userName,
-                Password = _password
-            };
+                using var channel = _connection.CreateModel();
+                channel.QueueDeclare(queue: queueName, false, false, false, null);
+                var jsonBody = JsonConvert.SerializeObject(message);
+                var body = System.Text.Encoding.UTF8.GetBytes(jsonBody);
 
-            _connection = factory.CreateConnection();
-
-            using var channel = _connection.CreateModel();
-            channel.QueueDeclare(queue: queueName, false, false, false, null);
-            var jsonBody = JsonConvert.SerializeObject(message);
-            var body = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-
-            channel.BasicPublish(exchange: "", routingKey: queueName, null, body: body);
-
+                channel.BasicPublish(exchange: "", routingKey: queueName, null, body: body);
+            }
         }
+
+        private void CreateConnection()
+        {
+            try
+            {
+                var factory = new ConnectionFactory()
+                {
+                    HostName = _hostName,
+                    UserName = _userName,
+                    Password = _password
+                };
+
+                _connection = factory.CreateConnection();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        private bool ConnectionExists()
+        {
+            if (_connection != null)
+            {
+                return true;
+            }
+            CreateConnection();
+            return _connection != null;
+        }
+
     }
 }
