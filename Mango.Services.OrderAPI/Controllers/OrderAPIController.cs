@@ -4,6 +4,7 @@ using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.IServices;
 using Mango.Services.OrderAPI.Models;
 using Mango.Services.OrderAPI.Models.DTOs;
+using Mango.Services.OrderAPI.RabbitMQSender;
 using Mango.Services.OrderAPI.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,12 +23,12 @@ namespace Mango.Services.OrderAPI.Controllers
         private IMapper _mapper;
         private readonly AppDbContext _db;
         private IProductService _productService;
-        private readonly IMessageBus _messageBus;
+        private readonly RabbitMQOrderMessageSender _messageBus;
         private readonly IConfiguration _configuration;
 
         public OrderAPIController(AppDbContext db,
             IProductService productService, IMapper mapper, IConfiguration configuration
-            , IMessageBus messageBus)
+            , RabbitMQOrderMessageSender messageBus)
         {
             _db = db;
             _messageBus = messageBus;
@@ -146,8 +147,8 @@ namespace Mango.Services.OrderAPI.Controllers
                         RewardsActity = Convert.ToInt32(orderHeader.OrderTotal), //1 point for every $1 spent
                         OrderId = orderHeader.OrderHeaderId
                     };
-                    string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreate");
-                    _messageBus.PublishMessage(rewardDto, topicName);
+                    string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreateTopic");
+                    _messageBus.SendMessage(rewardDto, topicName);
 
                     _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
                 }
