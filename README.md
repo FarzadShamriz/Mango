@@ -7,6 +7,7 @@
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 ![Azure](https://img.shields.io/badge/Azure%20Service%20Bus-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 
 A modern, scalable e-commerce platform built with microservices architecture using .NET 8.0
 
@@ -30,6 +31,7 @@ A modern, scalable e-commerce platform built with microservices architecture usi
 - [Project Structure](#-project-structure)
 - [Database Migrations](#-database-migrations)
 - [Running the Application](#-running-the-application)
+- [Branches](#-branches)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -52,7 +54,7 @@ The platform provides a complete shopping experience with user authentication, p
 - 🎫 **Coupon System** - Discount coupon management and validation
 - 📧 **Email Notifications** - Asynchronous email service for order confirmations
 - 🎁 **Reward Points** - Loyalty program with reward points tracking
-- 📡 **Message Bus** - Azure Service Bus integration for asynchronous communication
+- 📡 **Message Bus** - Dual messaging support: Azure Service Bus and RabbitMQ for asynchronous communication
 - 📚 **API Documentation** - Swagger/OpenAPI documentation for all services
 - 🎨 **Web Frontend** - ASP.NET Core MVC web application
 
@@ -63,7 +65,11 @@ The platform provides a complete shopping experience with user authentication, p
 The application follows a **microservices architecture** pattern where each service is independently deployable and responsible for a specific business domain. Services communicate through:
 
 - **Synchronous Communication**: HTTP/REST APIs for direct service-to-service calls
-- **Asynchronous Communication**: Azure Service Bus for event-driven messaging
+- **Asynchronous Communication**: Message bus integration supporting both **Azure Service Bus** (main branch) and **RabbitMQ** (feature branch) for event-driven messaging
+
+> **Note**: The project supports both messaging providers. Switch branches to use different message bus implementations:
+> - **Main branch**: Azure Service Bus implementation
+> - **RabbitMQ branch**: RabbitMQ implementation with the same message bus abstraction
 
 ```
 ┌─────────────────┐
@@ -84,9 +90,13 @@ The application follows a **microservices architecture** pattern where each serv
     │OrderAPI │
     └────┬────┘
          │
-    ┌────▼──────────────┐
-    │  Azure Service Bus │
-    └────┬──────────────┘
+    ┌────▼──────────────────────────────┐
+    │     Message Bus Layer             │
+    │  ┌──────────────┐  ┌────────────┐│
+    │  │Azure Service │  │  RabbitMQ  ││
+    │  │     Bus      │  │  (Branch)  ││
+    │  └──────────────┘  └────────────┘│
+    └────┬──────────────────────────────┘
          │
     ┌────┴────┐    ┌────┴────┐
     │EmailAPI │    │RewardAPI│
@@ -129,12 +139,14 @@ The application follows a **microservices architecture** pattern where each serv
 ### 6. **EmailAPI** 📧
 - Asynchronous email processing
 - Order confirmation emails
-- Azure Service Bus consumer
+- Message bus consumer (Azure Service Bus or RabbitMQ)
+- Supports multiple message types: order creation, cart checkout, user registration
 
 ### 7. **RewardAPI** 🎁
 - Reward points management
 - Points calculation and tracking
-- Azure Service Bus consumer
+- Message bus consumer (Azure Service Bus or RabbitMQ)
+- Processes reward points based on order events
 
 ### 8. **Mango.Web** 🌐
 - ASP.NET Core MVC frontend
@@ -144,8 +156,10 @@ The application follows a **microservices architecture** pattern where each serv
 
 ### 9. **Mango.MessageBus** 📡
 - Shared library for message bus operations
-- Azure Service Bus integration
-- Message publishing abstraction
+- Azure Service Bus integration (main branch)
+- RabbitMQ integration (feature branch)
+- Message publishing abstraction layer
+- Supports multiple messaging providers through unified interface
 
 ---
 
@@ -168,8 +182,10 @@ The application follows a **microservices architecture** pattern where each serv
 - **Cookie Authentication** - Web frontend authentication
 
 ### Messaging & Integration
-- **Azure Service Bus** - Message queue service
+- **Azure Service Bus** - Cloud message queue service (main branch)
 - **Azure.Messaging.ServiceBus** - Service Bus SDK
+- **RabbitMQ** - Open-source message broker (feature branch)
+- **RabbitMQ.Client** - RabbitMQ .NET client library
 
 ### Payment Processing
 - **Stripe** - Payment gateway integration
@@ -188,8 +204,11 @@ Before you begin, ensure you have the following installed:
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (LocalDB or Express edition)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) or [Visual Studio Code](https://code.visualstudio.com/)
-- [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) namespace (or local emulator)
+- **Message Bus** (choose one):
+  - [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) namespace (main branch)
+  - [RabbitMQ](https://www.rabbitmq.com/download.html) server (RabbitMQ branch) - Can run locally via Docker
 - [Stripe Account](https://stripe.com/) (for payment processing)
+- [Docker](https://www.docker.com/products/docker-desktop/) (optional, for running RabbitMQ locally)
 
 ---
 
@@ -220,13 +239,44 @@ Update the `appsettings.json` files in each service with your SQL Server connect
 }
 ```
 
-### 4. Configure Azure Service Bus
+### 4. Configure Message Bus
+
+#### Option A: Azure Service Bus (Main Branch)
 
 Update the connection string in `Mango.MessageBus/MessageBus.cs` or use configuration:
 
 ```csharp
 private string connectionString = "YOUR_AZURE_SERVICE_BUS_CONNECTION_STRING";
 ```
+
+#### Option B: RabbitMQ (RabbitMQ Branch)
+
+1. **Install RabbitMQ** (using Docker recommended):
+
+```bash
+docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+2. **Access RabbitMQ Management UI**: `http://localhost:15672` (default credentials: `guest`/`guest`)
+
+3. **Configure RabbitMQ connection** in `appsettings.json`:
+
+```json
+{
+  "RabbitMQ": {
+    "HostName": "localhost",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+  "TopicAndQueueNames": {
+    "OrderCreateTopic": "MangoOrderCreation",
+    "emailshoppingcarttopic": "MangoEmailShoppingCart",
+    "registeruser": "MangoRegisterUser"
+  }
+}
+```
+
+The RabbitMQ implementation uses background services (`RabbitMQOrderConsumer`, `RabbitMQCartConsumer`, `RabbitMQAuthConsumer`) that automatically connect and consume messages.
 
 ### 5. Configure Stripe (for OrderAPI)
 
@@ -329,6 +379,35 @@ Configure JWT settings in `Mango.Services.AuthAPI/appsettings.json`:
 }
 ```
 
+### Message Bus Configuration
+
+#### For RabbitMQ Branch
+
+Configure RabbitMQ settings in each service's `appsettings.json`:
+
+```json
+{
+  "RabbitMQ": {
+    "HostName": "localhost",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+  "TopicAndQueueNames": {
+    "OrderCreateTopic": "MangoOrderCreation",
+    "emailshoppingcarttopic": "MangoEmailShoppingCart",
+    "registeruser": "MangoRegisterUser"
+  }
+}
+```
+
+#### For Azure Service Bus (Main Branch)
+
+Configure Azure Service Bus connection string in `Mango.MessageBus/MessageBus.cs`:
+
+```csharp
+private string connectionString = "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=YOUR_KEY";
+```
+
 ---
 
 ## 📚 API Documentation
@@ -397,6 +476,15 @@ dotnet ef database update
 
 ## 🏃 Running the Application
 
+### Prerequisites for Messaging
+
+**For RabbitMQ Branch:**
+- Start RabbitMQ server (if using Docker: `docker start some-rabbit` or use the Docker command from configuration section)
+
+**For Azure Service Bus (Main Branch):**
+- Ensure Azure Service Bus namespace is accessible
+- Connection string is configured correctly
+
 ### Option 1: Visual Studio
 
 1. Open `Mango.sln` in Visual Studio 2022
@@ -409,9 +497,18 @@ dotnet ef database update
 
 Run each service in a separate terminal window as described in the [Getting Started](#-getting-started) section.
 
+**Important**: Make sure RabbitMQ server is running if you're using the RabbitMQ branch:
+```bash
+# Check if RabbitMQ is running
+docker ps | grep rabbit
+
+# If not running, start it
+docker start some-rabbit
+```
+
 ### Option 3: Docker (Future Enhancement)
 
-Docker support can be added for containerized deployment.
+Docker support can be added for containerized deployment. Currently, RabbitMQ can be run via Docker as shown in the configuration section.
 
 ---
 
@@ -425,6 +522,15 @@ Docker support can be added for containerized deployment.
 
 ---
 
+## 🌿 Branches
+
+This repository contains multiple branches with different message bus implementations:
+
+- **`main`** - Uses Azure Service Bus for asynchronous messaging
+- **`rabbitmq`** or **`feature/rabbitmq`** - Uses RabbitMQ for asynchronous messaging
+
+Both implementations provide the same functionality using different message bus technologies. Choose the branch that suits your infrastructure requirements.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -434,6 +540,13 @@ Contributions are welcome! Please follow these steps:
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+### Working with Different Message Bus Implementations
+
+If you're working on messaging features:
+- Test your changes with both Azure Service Bus and RabbitMQ implementations
+- Ensure the message bus abstraction remains consistent across implementations
+- Update documentation if adding new messaging features
 
 ---
 
